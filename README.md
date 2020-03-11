@@ -11,3 +11,5 @@ runParallel.bat "D:\IPL\Mestrado\1_Ano\SCM\SCM\TP1\run2x.bat D:\IPL\Mestrado\1_A
 
 
 Still in development
+
+Original Code: https://stackoverflow.com/a/19481253
