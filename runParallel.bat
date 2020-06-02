@@ -7,3 +7,4 @@ IF not exist %temp%\Parracho\process\queue  ( mkdir %temp%\Parracho\process\queu
 >%temp%\Parracho\process\%random%.txt echo %~1
 
 IF not exist %temp%\Parracho\process\queue\Running.txt  (  start manageParallel.bat )
+exit

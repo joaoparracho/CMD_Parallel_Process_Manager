@@ -14,7 +14,7 @@ if /i "%~1" equ "/O" (
 :: Define the maximum number of parallel processes to run.
 :: Each process number can optionally be assigned to a particular server
 :: and/or cpu via psexec specs (untested).
-set "maxProc=2" 
+set "maxProc=1" 
 
 :: Optional - Define CPU targets in terms of PSEXEC specs
 ::           (everything but the command)
@@ -39,14 +39,10 @@ for /l %%N in (1 1 %maxProc%) do set "cpu%%N="
     goto :break
   )
   :break
-  echo %temp%
   >%temp%\Parracho\process\queue\Running.txt echo "I'm Running Bitches"
   set "lock=%temp%\Parracho\lock%lock%_%random%_"
-  
-  echo %lock%
 :: Initialize the counters
   set /a "startCount=0, endCount=0"
-
 :: Clear any existing end flags
   for /l %%N in (1 1 %maxProc%) do set "endProc%%N="
 
@@ -56,12 +52,8 @@ for /l %%N in (1 1 %maxProc%) do set "cpu%%N="
   :loop
     for %%A in (%temp%\Parracho\process\*.txt) do (
       set /p comand=<%%A
-      echo Start !startCount!
-      if !startCount! lss %maxProc% ( 
-        set /a "startCount+=1, nextProc=startCount"
-      ) else (
-        call :wait 
-      )
+      if !startCount! lss %maxProc% ( set /a "startCount+=1, nextProc=startCount"
+      ) else ( call :wait )
       echo !comand!
       set cmd!nextProc!=!comand!
       if defined showOutput echo -------------------------------------------------------------------------------
@@ -70,9 +62,8 @@ for /l %%N in (1 1 %maxProc%) do set "cpu%%N="
       %= Redirect the lock handle to the lock file. The CMD process will     =%
       %= maintain an exclusive lock on the lock file until the process ends. =%
       start /b "" cmd /c %lockHandle%^>"%lock%!nextProc!" 2^>^&1 !cpu%%N! !comand!
-      rm %%A
+      del %%A
     )
-
   set "launch="
 
 :wait
@@ -107,17 +98,10 @@ if %endCount% lss %startCount% (
     1>nul 2>nul ping /n 2 ::1
     goto :wait
   )
-  echo befor loop 2 !startCount! lss %maxProc%
-  if /i !cnt! NEQ 0 if /i !startCount! lss %maxProc% (
-    goto :loop 
-  )
+  if /i !cnt! NEQ 0 if /i !startCount! lss %maxProc% goto :loop 
 ) else (
   if /i !cnt! NEQ 0 (
-    for /l %%N in (1 1 %startCount%) do (
-      if defined endProc%%N (
-        set "endProc%%N="
-      )
-    )
+    for /l %%N in (1 1 %startCount%) do if defined endProc%%N set "endProc%%N="
     set /a "startCount=0, endCount=0"
     goto :loop 
   )
@@ -125,7 +109,7 @@ if %endCount% lss %startCount% (
 2>nul del %lock%*
 if defined showOutput echo ===============================================================================
 echo Thats all folks^^!
-rm %temp%\Parracho\process\queue\Running.txt
+del %temp%\Parracho\process\queue\Running.txt
 
 
 
